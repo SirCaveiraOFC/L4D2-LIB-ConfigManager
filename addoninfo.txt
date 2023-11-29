@@ -1,0 +1,27 @@
+"AddonInfo"
+{
+    AddonTitle          "[LIB] ConfigManager"
+    AddonVersion        "1.0"
+    AddonDescription    "A Library designed to assist with the management of Configuration Files."
+    AddonAuthor         "Sr.Caveira | 頭蓋骨 </> Dark'"
+    AddonAuthorSteamID  "76561199100008197"
+    AddonURL0         ""
+
+    AddonSteamAppID  550
+
+    AddonContent_BackgroundMovie 0
+    AddonContent_BossInfected    0
+    AddonContent_Campaign        0
+    AddonContent_CommonInfected  0
+    AddonContent_Map      0
+    AddonContent_Music    0
+    AddonContent_Prefab   0
+    AddonContent_Prop     0
+    AddonContent_Script   1
+    AddonContent_Skin     0
+    AddonContent_Sound    0
+    AddonContent_Spray    0
+    AddonContent_Survivor 0
+    AddonContent_Weapon      0
+    AddonContent_WeaponModel 0
+}
