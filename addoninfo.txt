@@ -1,7 +1,7 @@
 "AddonInfo"
 {
     AddonTitle          "[LIB] ConfigManager"
-    AddonVersion        "1.0"
+    AddonVersion        "1.0.1"
     AddonDescription    "A Library designed to assist with the management of Configuration Files."
     AddonAuthor         "Sr.Caveira | 頭蓋骨 </> Dark'"
     AddonAuthorSteamID  "76561199100008197"
