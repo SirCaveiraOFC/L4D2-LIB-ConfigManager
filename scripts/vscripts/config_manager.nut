@@ -1204,7 +1204,7 @@ IncludeScript("config_manager/VSLib");
  * @param     {string}  FileFolder    - The Folder Name,  e.g. "cm_config_manager".
  * @param     {string}  FileName      - The File Name,    e.g. "config_manager_settings".
  * @param     {string}  FileType      - The File Type, either "KeyValue" or "List" or "CVar".
- * @param     {string}  FileValue     - The value to be get from the file.
+ * @param     {any}     FileValue     - The value to be get from the file.
  *
  * @usages
  * Examples:
@@ -1229,16 +1229,30 @@ IncludeScript("config_manager/VSLib");
   local FileValueType       = ( typeof FileValue );
   local CurrentLine         = 0;
   local Key                 = "";
+  local LineValue           = null;
+  local LineValueType       = null;
   local Value               = {}; // KEYS: Key, Value, ValueType
   local LineSplitEqual      = "";
   local LineSplitSeparator  = "";
   local FunctionName        = "CM_ConfigManager.Get()";
 
-  // Check if FileFolder, FileName, FileType and FileValue are valid non-empty strings.
+  // Check if FileFolder, FileName and FileType are valid non-empty strings.
   ::CM_ConfigManager.ValidateStringParameter( FileFolder, "FileFolder", FunctionName );
   ::CM_ConfigManager.ValidateStringParameter( FileName,   "FileName",   FunctionName );
   ::CM_ConfigManager.ValidateStringParameter( FileType,   "FileType",   FunctionName );
-  ::CM_ConfigManager.ValidateStringParameter( FileValue,  "FileValue",  FunctionName );
+
+  // Check if FileValue is or not invalid.
+  if
+  (
+    FileValueType != "string" &&
+    FileValueType != "table" &&
+    FileValueType != "array"
+  )
+  {
+    ::CM_DebugMessage <- "[Config Manager] " + FunctionName + " : Parameter 'FileValue' cannot be a '" + FileValueType + "'.";
+    ::CM_PrintToHost( ::CM_DebugMessage );
+    throw ::CM_DebugMessage;
+  }
 
   // Check if the file exist.
   if ( File != null )
@@ -1265,7 +1279,9 @@ IncludeScript("config_manager/VSLib");
             // Check if this line in FileContents contains the "|" delimiter.
             if ( Line.find( Delimiter2 ) != null )
             {
-              LineSplitSeparator = split( Line, Delimiter2 );
+              LineSplitSeparator  = split( Line, Delimiter2 );
+              LineValue           = split( LineSplitSeparator[0], Delimiter )[1];
+              LineValueType       = LineSplitSeparator[1];
 
               // Check if is missing the 'Value' OR 'ValueType'.
               if ( split( Line, Delimiter2 ).len() != 2 )
@@ -1275,13 +1291,28 @@ IncludeScript("config_manager/VSLib");
                 throw ::CM_DebugMessage;
               }
 
-              if ( Key == FileValue )
+              // Check if is an empty Table
+              if ( FileValueType == "table" && FileValue.len() == 0 )
               {
-                Value.Key       <- Key;
-                Value.Value     <- split( LineSplitSeparator[0], Delimiter )[1];
-                Value.ValueType <- LineSplitSeparator[1];
-                Value.Value     <- ::CM_ConvertValueType( Value.Value, Value.ValueType );
-                break;
+                Value.Key           <- "";
+
+                if ( !( "Value" in Value ) )
+                  Value.Value <- {};
+
+                Value.Value[ Key ]  <- ::CM_ConvertValueType( LineValue, LineValueType );
+                Value.ValueType     <- "table";
+              }
+              else
+              {
+                // Check if has found the value searched
+                if ( Key == FileValue )
+                {
+                  Value.Key       <- Key;
+                  Value.Value     <- LineValue;
+                  Value.ValueType <- LineValueType
+                  Value.Value     <- ::CM_ConvertValueType( Value.Value, Value.ValueType );
+                  break;
+                }
               }
             }
             else
@@ -1322,7 +1353,9 @@ IncludeScript("config_manager/VSLib");
           // Check if this line in FileContents contains the "|" delimiter.
           if ( Line.find( Delimiter2 ) != null )
           {
-            LineSplitSeparator = split( Line, Delimiter2 );
+            LineSplitSeparator  = split( Line, Delimiter2 );
+            LineValue           = LineSplitSeparator[0];
+            LineValueType       = LineSplitSeparator[1];
 
             // Check if is missing the 'Value' OR 'ValueType'.
             if ( split( Line, Delimiter2 ).len() != 2 )
@@ -1332,12 +1365,27 @@ IncludeScript("config_manager/VSLib");
               throw ::CM_DebugMessage;
             }
 
-            if ( LineSplitSeparator[0] == FileValue )
+            // Check if is an empty Array
+            if ( FileValueType == "array" && FileValue.len() == 0 )
             {
-              Value.Value     <- LineSplitSeparator[0];
-              Value.ValueType <- LineSplitSeparator[1];
-              Value.Value     <- ::CM_ConvertValueType( Value.Value, Value.ValueType );
-              break;
+              Value.Key           <- "";
+
+              if ( !( "Value" in Value ) )
+                Value.Value <- [];
+
+              Value.Value.append( ::CM_ConvertValueType( LineValue, LineValueType ) );
+              Value.ValueType     <- "array";
+            }
+            else
+            {
+              // Check if has found the value searched
+              if ( LineSplitSeparator[0] == FileValue )
+              {
+                Value.Value     <- LineValue;
+                Value.ValueType <- LineValueType;
+                Value.Value     <- ::CM_ConvertValueType( Value.Value, Value.ValueType );
+                break;
+              }
             }
           }
           else
@@ -1394,13 +1442,13 @@ IncludeScript("config_manager/VSLib");
 
    /**
     * Check if there are values to get.
-    * If there are, return an Table with the values; otherwise, will return false.
+    * If there are, return a Table with the values; otherwise, will return false.
     */
    if ( Value.len() != 0 )
    {
      /**
       * If the file exists,
-      * try to get his data and return an Table with the values to indicate success.
+      * try to get his data and return a Table with the values to indicate success.
       */
      return Value;
    }
